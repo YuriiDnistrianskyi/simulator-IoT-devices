@@ -10,9 +10,12 @@ with open("config.json", "r") as file:
 sqs = boto3.client("sqs", region_name=CONFIG["region"])
 SQS_URL = CONFIG["sqs_url"]
 LOCATION_LIST = {}
+DEVICE_ID = {}
 
 for sensor in CONFIG["sensors"]:
     LOCATION_LIST[sensor["type"]] = sensor["location"]
+    DEVICE_ID[sensor["type"]] = sensor["device_id"]
+
 
 semaphore = asyncio.Semaphore(CONFIG["number_of_semaphores"])
 
@@ -28,10 +31,12 @@ def generate_sensor_data(sensor_type):
         print(f"Not understood sensor type: {sensor_type}")
 
     data = {
+        "device_id": DEVICE_ID[sensor_type],
         "sensor_type": sensor_type,
         "value": value,
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "location": LOCATION_LIST[sensor_type]
+        "location_lat": LOCATION_LIST[sensor_type]["lat"],
+        "location_lon": LOCATION_LIST[sensor_type]["lon"]
     }
 
     return data

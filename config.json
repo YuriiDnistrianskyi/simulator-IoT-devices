@@ -4,6 +4,7 @@
   "number_of_semaphores": 9,
   "sensors": [
     {
+      "device_id": "DHT11_03847",
       "type": "temperature",
       "interval_ms": 40,
       "location": {
@@ -12,6 +13,7 @@
       }
     },
     {
+      "device_id": "DTH22_84754",
       "type": "humidity",
       "interval_ms": 50,
       "location": {
@@ -20,6 +22,7 @@
       }
     },
     {
+      "device_id": "BME280_94365",
       "type": "pressure",
       "interval_ms": 60,
       "location": {
