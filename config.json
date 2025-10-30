@@ -1,5 +1,6 @@
 {
   "server_url": "",
+  "number_of_semaphores": 9,
   "sensors": [
     {
       "type": "temperature",

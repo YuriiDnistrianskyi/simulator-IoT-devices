@@ -1,8 +1,7 @@
-import requests
+import asyncio
+import aiohttp
 import random
-import time
 import json
-import threading #
 from datetime import datetime
 
 with open("config.json", "r") as file:
@@ -14,7 +13,7 @@ LOCATION_LIST = {}
 for sensor in CONFIG["sensors"]:
     LOCATION_LIST[sensor["type"]] = sensor["location"]
 
-# print(LOCATION_LIST)
+semaphore = asyncio.Semaphore(CONFIG["number_of_semaphores"])
 
 def generate_sensor_data(sensor_type):
     if sensor_type == "temperature":
@@ -36,61 +35,32 @@ def generate_sensor_data(sensor_type):
 
     return data
 
-def simulate_iot_devices():
-    pass
+
+async def send_data(session, sensor_type, interval_ms):
+    while True:
+        await asyncio.sleep(interval_ms / 1000)
+        payload = generate_sensor_data(sensor_type)
+        async with semaphore:
+            try:
+                async with session.post(SERVER_URL, json=payload) as response:
+                    status = response.status
+                    print(status)
+            except Exception as ex:
+                print(f"| {sensor_type} | Error: {ex}")
+
+
+async def main():
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        for sensor in CONFIG["sensors"]:
+            task = asyncio.create_task(send_data(session, sensor["type"], sensor["interval_ms"]))
+            tasks.append(task)
+
+        await asyncio.gather(*tasks)
+
 
 if __name__ == "__main__":
-    print("End")
-
-
-#
-# # === Функція генерації даних ===
-# def generate_sensor_data(sensor_type):
-#     """Генерує випадкове значення для конкретного сенсора"""
-#     if sensor_type == "temperature":
-#         value = round(random.uniform(15, 30), 2)
-#     elif sensor_type == "humidity":
-#         value = round(random.uniform(40, 90), 2)
-#     elif sensor_type == "light":
-#         value = round(random.uniform(200, 800), 2)
-#     else:
-#         value = 0
-#
-#     data = {
-#         "sensor_type": sensor_type,
-#         "value": value,
-#         "timestamp": datetime.utcnow().isoformat(),
-#         "location": LOCATION
-#     }
-#     return data
-#
-# # === Функція відправки даних ===
-# def send_data(sensor_type, interval_ms):
-#     """Надсилає дані з певною частотою"""
-#     while True:
-#         payload = generate_sensor_data(sensor_type)
-#         try:
-#             response = requests.post(SERVER_URL, json=payload, timeout=2)
-#             print(f"[{sensor_type}] Sent → {response.status_code} | {payload}")
-#         except Exception as e:
-#             print(f"[{sensor_type}] Error sending data:", e)
-#         time.sleep(interval_ms / 1000.0)
-#
-# # === Запуск потоків для кожного сенсора ===
-# def main():
-#     threads = []
-#     for sensor in CONFIG["sensors"]:
-#         t = threading.Thread(
-#             target=send_data,
-#             args=(sensor["type"], sensor["interval_ms"]),
-#             daemon=True
-#         )
-#         threads.append(t)
-#         t.start()
-#
-#     print("IoT Emulator started. Press Ctrl+C to stop.")
-#     while True:
-#         time.sleep(1)
-#
-# if __name__ == "__main__":
-#     main()
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("Emulator stopped")
