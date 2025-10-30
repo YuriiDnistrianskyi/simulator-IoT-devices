@@ -1,5 +1,5 @@
 import asyncio
-import aiohttp
+import boto3
 import random
 import json
 from datetime import datetime
@@ -7,7 +7,8 @@ from datetime import datetime
 with open("config.json", "r") as file:
     CONFIG = json.load(file)
 
-SERVER_URL = CONFIG["server_url"]
+sqs = boto3.client("sqs", region_name=CONFIG["region"])
+SQS_URL = CONFIG["sqs_url"]
 LOCATION_LIST = {}
 
 for sensor in CONFIG["sensors"]:
@@ -36,28 +37,29 @@ def generate_sensor_data(sensor_type):
     return data
 
 
-async def send_data(session, sensor_type, interval_ms):
+async def send_data(sensor_type, interval_ms):
     while True:
         await asyncio.sleep(interval_ms / 1000)
-        payload = generate_sensor_data(sensor_type)
+        data = generate_sensor_data(sensor_type)
         async with semaphore:
             try:
-                async with session.post(SERVER_URL, json=payload) as response:
-                    status = response.status
-                    print(status)
+                loop = asyncio.get_running_loop()
+                await loop.run_in_executor(
+                    None,
+                    sqs.send_message,
+                    SQS_URL,
+                    json.dumps(data),
+                )
             except Exception as ex:
                 print(f"| {sensor_type} | Error: {ex}")
 
 
 async def main():
-    async with aiohttp.ClientSession() as session:
-        tasks = []
-        for sensor in CONFIG["sensors"]:
-            task = asyncio.create_task(send_data(session, sensor["type"], sensor["interval_ms"]))
-            tasks.append(task)
-
-        await asyncio.gather(*tasks)
-
+    tasks = []
+    for sensor in CONFIG["sensors"]:
+        task = asyncio.create_task(send_data(sensor["type"], sensor["interval_ms"]))
+        tasks.append(task)
+    await asyncio.gather(*tasks)
 
 if __name__ == "__main__":
     try:

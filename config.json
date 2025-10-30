@@ -1,5 +1,6 @@
 {
-  "server_url": "",
+  "sqs_url": "sqs_url",
+  "region": "region",
   "number_of_semaphores": 9,
   "sensors": [
     {
