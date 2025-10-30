@@ -1,0 +1,29 @@
+{
+  "server_url": "",
+  "sensors": [
+    {
+      "type": "temperature",
+      "interval_ms": 40,
+      "location": {
+        "lat": 11.1111,
+        "lon": 11.1111
+      }
+    },
+    {
+      "type": "humidity",
+      "interval_ms": 50,
+      "location": {
+        "lat": 22.2222,
+        "lon": 22.2222
+      }
+    },
+    {
+      "type": "pressure",
+      "interval_ms": 60,
+      "location": {
+        "lat": 33.3333,
+        "lon": 33.3333
+      }
+    }
+  ]
+}
