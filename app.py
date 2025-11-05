@@ -51,9 +51,10 @@ async def send_data(sensor_type, interval_ms):
                 loop = asyncio.get_running_loop()
                 await loop.run_in_executor(
                     None,
-                    sqs.send_message,
-                    SQS_URL,
-                    json.dumps(data),
+                    lambda: sqs.send_message(
+                        QueueUrl=SQS_URL,
+                        MessageBody=json.dumps(data),
+                    )
                 )
             except Exception as ex:
                 print(f"| {sensor_type} | Error: {ex}")
