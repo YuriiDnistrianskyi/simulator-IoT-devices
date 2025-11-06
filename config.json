@@ -29,6 +29,15 @@
         "lat": 33.3333,
         "lon": 33.3333
       }
+    },
+    {
+      "device_id": "DHT11_64754",
+      "type": "error_sensor_type",
+      "interval_ms": 40,
+      "location": {
+        "lat": 44.4444,
+        "lon": 44.4444
+      }
     }
   ]
 }

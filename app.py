@@ -26,6 +26,8 @@ def generate_sensor_data(sensor_type):
         value = round(random.uniform(40, 80), 2)
     elif sensor_type == "pressure":
         value = round(random.uniform(900, 1100), 2)
+    elif sensor_type == "error_sensor_type":
+        value = 0
     else:
         value = None
         print(f"Not understood sensor type: {sensor_type}")
